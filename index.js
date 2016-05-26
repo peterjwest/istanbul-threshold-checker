@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var utils = require('istanbul').utils;
+var utils = require('istanbul/lib/object-utils');
 
 var TYPES = ['lines', 'statements', 'functions', 'branches'];
 
