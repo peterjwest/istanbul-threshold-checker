@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var utils = require('istanbul/lib/object-utils');
+var minimatch = require('minimatch');
 
 var TYPES = ['lines', 'statements', 'functions', 'branches'];
 
@@ -49,6 +50,11 @@ var checker = module.exports = {
             });
         }
 
+        // Files and each can't be defined together
+        if (thresholds.each && thresholds.files) {
+            throw new Error('Files and Each cannot be used together.');
+        }
+
         // If there are individual thresholds check coverage per file
         if (thresholds.each) {
             var failures = { statements: [], branches: [], lines: [], functions: [] };
@@ -64,11 +70,40 @@ var checker = module.exports = {
             });
 
             // Inject into summary
-            summary.map(function(metric) {
+            summary.forEach(function(metric) {
                 metric.each = {
                     failed: failures[metric.type].length > 0,
                     failures: failures[metric.type]
                 };
+            });
+        }
+
+        // If there are file globs check each one
+        if (thresholds.files) {
+            var fileFailures = { statements: [], branches: [], lines: [], functions: [] };
+
+            _.each(coverage, function(fileCoverage, filename) {
+                var fileType = Object.keys(thresholds.files).find(x => minimatch(filename, x));
+
+                if (fileType) {
+                    // Check failures for a file
+                    var each = checker.checkThresholds(
+                        thresholds.files[fileType],
+                        utils.summarizeFileCoverage(fileCoverage)
+                    );
+
+                    _.map(each, function(item, i) {
+                        if (item.failed) fileFailures[TYPES[i]].push(filename);
+                    });
+                }
+
+                // Inject into summary
+                summary.forEach(function(metric) {
+                    metric.each = {
+                        failed: fileFailures[metric.type].length > 0,
+                        failures: fileFailures[metric.type]
+                    };
+                });
             });
         }
 

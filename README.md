@@ -44,6 +44,33 @@ Thresholds can be checked across all files or against each file using `global` a
 
 You can exclude `global` or `each` if you only want to check global or per file coverage.
 
+Thresholds can be checked across files based on a glob pattern:
+
+    var thresholds = {
+        global: {
+            statements: 100,
+            branches: 90,
+            lines: 70,
+            functions: -10
+        },
+        files: {
+            '**/src/components/**/*': {
+                statements: 0,
+                branches: -20,
+                lines: 60,
+                functions: 100
+            },
+            '**/src/reducers/**/*': {
+                statements: 100,
+                branches: 100,
+                lines: 100,
+                functions: 100
+            }
+        }
+    };
+
+`files` and `each` cannot be used together - an error will be thrown.
+
 Each set of thresholds can also be a single value, which checks that value across all metrics:
 
     var thresholds = {
