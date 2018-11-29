@@ -5,7 +5,8 @@
   "main": "index.js",
   "dependencies": {
     "istanbul": "~0.4.5",
-    "lodash": "~4.17.2"
+    "lodash": "~4.17.2",
+    "minimatch": "^3.0.4"
   },
   "devDependencies": {
     "assert": "~1.4.1",
