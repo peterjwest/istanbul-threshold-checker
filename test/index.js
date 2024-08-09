@@ -120,7 +120,7 @@ describe('checkFailures', function() {
 
     afterEach(function() {
         this.env.restore();
-    })
+    });
 
     it('checks global and per file thresholds', function() {
         var thresholds = {
@@ -198,6 +198,59 @@ describe('checkFailures', function() {
             { type: 'lines', each: { failed: true, failures: ['/file/test.js'] } },
             { type: 'statements', each: { failed: true, failures: ['/file/test2.js'] } },
             { type: 'functions', each: { failed: true, failures: ['/file/test2.js'] } },
+            { type: 'branches', each: { failed: false, failures: [] } }
+        ]);
+    });
+
+    it('does not allow files and each to be used together', function() {
+        var thresholds = {
+            each: { lines: 90, statements: 100, functions: 100, branches: 100 },
+            files: {}
+        };
+
+        assert.throws(function() {
+            checker.checkFailures(thresholds, this.coverage)
+        }, Error, 'Files and Each cannot be used together.');
+    });
+
+    it('matches files to their specified thresholds', function() {
+        var thresholds = {
+            files: {
+                '**/src/actions/**/*': { lines: 75, statements: 100, functions: 100, branches: 100 },
+                '**/src/reducers/**/*': { lines: 90, statements: 100, functions: 100, branches: 100 }
+            }
+        };
+
+        var coverage = {
+            '/src/actions/test.js': {},
+            '/src/reducers/test2.js': {}
+        };
+
+        assert.deepEqual(checker.checkFailures(thresholds, coverage), [
+            { type: 'lines', each: { failed: false, failures: [] } },
+            { type: 'statements', each: { failed: true, failures: ['/src/reducers/test2.js'] } },
+            { type: 'functions', each: { failed: true, failures: ['/src/reducers/test2.js'] } },
+            { type: 'branches', each: { failed: false, failures: [] } }
+        ]);
+    });
+
+    it('return no failures if files do not match globs', function() {
+        var thresholds = {
+            files: {
+                '**/src/actions/**/*': { lines: 75, statements: 100, functions: 100, branches: 100 },
+                '**/src/reducers/**/*': { lines: 90, statements: 100, functions: 100, branches: 100 }
+            }
+        };
+
+        var coverage = {
+            '/src/components/test.js': {},
+            '/src/components/test2.js': {}
+        };
+
+        assert.deepEqual(checker.checkFailures(thresholds, coverage), [
+            { type: 'lines', each: { failed: false, failures: [] } },
+            { type: 'statements', each: { failed: false, failures: [] } },
+            { type: 'functions', each: { failed: false, failures: [] } },
             { type: 'branches', each: { failed: false, failures: [] } }
         ]);
     });
