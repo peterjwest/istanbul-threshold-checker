@@ -1,6 +1,9 @@
 # Istanbul threshold checker
 Checks an instanbul coverage report against thresholds
 
+> [!WARNING]
+> This project has been archived, because it is no longer maintained, as I don't use Istanbul/nyc anymore
+
 ## Usage
 
 Install with npm
